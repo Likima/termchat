@@ -39,45 +39,26 @@ func main() {
 	for {
 		e := <-uiEvents
 		updateWidgetSizes()
-		ui.Render(chat, typing)
 		switch e.ID {
 		case "<C-c>":
 			clearTerminal()
 			return
 		case "<Resize>":
 			updateWidgetSizes()
-			ui.Render(chat, typing)
-			continue
+		case "<Enter>":
+			history += message + "\n"
+			message = ""
+			typing.Text = "Enter a Message"
+		case "<C-<Backspace>>":
+			if len(message) > 0 {
+				message = message[:len(message)-1]
+			}
+		case "<Space>":
+			message += " "
 		default:
 			message += e.ID
-			for {
-				e2 := <-uiEvents
-				if e2.ID == "<Enter>" {
-					history += message
-					history += "\n"
-					message = ""
-					typing.Text = "Enter a Message"
-					ui.Render(chat, typing)
-					break
-				} else if e2.ID == "<C-<Backspace>>" {
-					if len(message) == 0 {
-						break
-					}
-					message = message[:len(message)-1]
-
-				} else if e2.ID == "<Space>" {
-					message = message + " "
-				} else if e2.ID == "<Resize>" {
-					updateWidgetSizes()
-					ui.Render(chat, typing)
-				} else {
-					message += e2.ID
-				}
-				typing.Text = message
-				ui.Render(chat, typing)
-			}
 		}
-		updateWidgetSizes()
+		typing.Text = message
 		chat.Text = history
 		ui.Render(chat, typing)
 	}
