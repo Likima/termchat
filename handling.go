@@ -29,7 +29,7 @@ func render(e ui.Event, app *App) {
 		app.message = app.message[:app.cursorPos] + " " + app.message[app.cursorPos:]
 		app.cursorPos++
 	case "<MouseLeft>":
-	case "<MouseRelease>":
+	case "<MouseRelease>": //still dont know what to do with these.
 	case "<MouseRight>":
 		break
 	case "<Left>":
