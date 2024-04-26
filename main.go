@@ -18,13 +18,14 @@ func main() {
 	message, history := "", ""
 	cursorPos := 0
 
-	chat := widgets.NewParagraph()
+	chat := widgets.NewList()
 	chat.Title = "CHAT"
-	chat.Text = "Ctrl-C to quit, Type to do stuff"
+	chat.WrapText = true // Enable text wrapping
+	chat.SetRect(0, 0, 80, 20) // Set initial size of the chat widget
 
 	typing := widgets.NewParagraph()
-	typing.Title = "Message"
-	typing.Text = "Enter a Message"
+	typing.Title = "MESSAGE"
+	typing.Text = ""
 
 	updateWidgetSizes := func() {
 		termWidth, termHeight := ui.TerminalDimensions()
@@ -51,7 +52,8 @@ func main() {
 			if message == "" {
 				continue
 			}
-			history += "You: " + message + "\n"
+			history = "You: " + message
+			chat.Rows = append(chat.Rows, history)
 			cursorPos = 0
 			message = ""
 			typing.Text = "Enter a Message"
@@ -75,6 +77,14 @@ func main() {
 			if cursorPos < len(message) {
 				cursorPos++
 			}
+		case "<MouseWheelDown>":
+			if len(chat.Rows) > 0 {
+				chat.ScrollHalfPageDown() // Scroll the page down
+			}
+		case "<MouseWheelUp>":
+			if len(chat.Rows) > 0 {
+				chat.ScrollHalfPageUp() // Scroll the page up
+			}
 		default:
 			if len(e.ID) == 1 {
 				message = message[:cursorPos] + e.ID + message[cursorPos:]
@@ -82,14 +92,16 @@ func main() {
 			}
 		}
 		typing.Text = message
-		chat.Text = history
+		if len(chat.Rows) > 0 {
+			chat.ScrollDown()
+		}
 		updateInputBoxText(typing, cursorPos)
 		ui.Render(chat, typing)
 	}
 }
 
 func clearTerminal() {
-	cmd := exec.Command("cls") // Use "cls" instead of "clear" on Windows
+	cmd := exec.Command("cls")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
 }
