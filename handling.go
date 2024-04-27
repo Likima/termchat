@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"time"
 
 	ui "github.com/gizak/termui/v3"
 )
@@ -19,6 +20,8 @@ func render(e ui.Event, app *App, conn net.Conn) int {
 			break
 		}
 		app.history = "You: " + app.message
+		currentTime := time.Now().Format("15:04:05")
+		app.message = currentTime + " " + app.message
 		_, err := fmt.Fprintf(conn, "%s\n", app.message)
 		if err != nil {
 			app.history = "LOST CONNECTION"
