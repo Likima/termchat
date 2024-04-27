@@ -1,14 +1,17 @@
 package main
 
 import (
+	"fmt"
+	"net"
+
 	ui "github.com/gizak/termui/v3"
 )
 
-func render(e ui.Event, app *App) {
+func render(e ui.Event, app *App, conn net.Conn) int {
 	switch e.ID {
 	case "<C-c>":
 		clearTerminal()
-		return
+		return -1
 	case "<Resize>":
 		updateWidgetSizes(app)
 	case "<Enter>":
@@ -16,10 +19,15 @@ func render(e ui.Event, app *App) {
 			break
 		}
 		app.history = "You: " + app.message
+		_, err := fmt.Fprintf(conn, "%s\n", app.message)
+		if err != nil {
+			app.history = "LOST CONNECTION"
+			return -1
+		}
 		app.chat.Rows = append(app.chat.Rows, app.history)
 		app.cursorPos = 0
 		app.message = ""
-		app.typing.Text = "Enter a app.message"
+		app.typing.Text = "Enter a message "
 	case "<C-<Backspace>>":
 		if len(app.message) > 0 && app.cursorPos > 0 {
 			app.message = app.message[:app.cursorPos-1] + app.message[app.cursorPos:]
@@ -60,4 +68,5 @@ func render(e ui.Event, app *App) {
 	}
 	updateInputBoxText(app.typing, app.cursorPos)
 	ui.Render(app.chat, app.typing)
+	return 0
 }
